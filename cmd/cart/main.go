@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"net"
 	"net/http"
 	"time"
 
@@ -21,13 +22,20 @@ func main() {
 	defer conn.Close()
 	productClient := pb.NewProductServiceClient(conn)
 	service := cart.New(productClient)
-	server := &http.Server{}
-	server.Addr = ":8080"
-	server.Handler = service.Handler()
-	server.ReadHeaderTimeout = 5 * time.Second
-	log.Println("cart listening on :8080")
-	err = server.ListenAndServe()
+	listener, err := net.Listen("tcp", ":8080")
 	if err != nil {
 		log.Fatal(err)
 	}
+	log.Println("cart listening on :8080")
+	if err := serve(listener, service.Handler()); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func serve(listener net.Listener, handler http.Handler) error {
+	server := &http.Server{
+		Handler:           handler,
+		ReadHeaderTimeout: 5 * time.Second,
+	}
+	return server.Serve(listener)
 }

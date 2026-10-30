@@ -18,11 +18,14 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	server := grpc.NewServer()
-	pb.RegisterProductServiceServer(server, catalog)
 	log.Println("product-service listening on :50051")
-	err = server.Serve(listener)
-	if err != nil {
+	if err := serve(listener, catalog); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func serve(listener net.Listener, catalog pb.ProductServiceServer) error {
+	server := grpc.NewServer()
+	pb.RegisterProductServiceServer(server, catalog)
+	return server.Serve(listener)
 }

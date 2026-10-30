@@ -1,4 +1,4 @@
-.PHONY: run-all generate tools test
+.PHONY: run-all generate tools test test-race test-api bench
 
 GO ?= go
 PROTOC ?= protoc
@@ -23,4 +23,13 @@ run-all:
 	exit 1
 
 test:
+	$(GO) test ./...
+
+test-race:
 	$(GO) test -race ./...
+
+test-api:
+	$(GO) test -v -count=1 -tags=api ./test/
+
+bench:
+	$(GO) test -run='^$$' -bench=. -benchmem ./internal/...
